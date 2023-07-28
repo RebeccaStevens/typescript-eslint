@@ -9,7 +9,9 @@ export type AtLeastVersionConstraint =
   | `${number}.${number}.${number}`
   | `${number}.${number}`
   | `${number}`;
+export type AnyVersionConstraint = '*';
 export type VersionConstraint =
+  | AnyVersionConstraint
   | AtLeastVersionConstraint
   | SemverVersionConstraint;
 export interface DependencyConstraint {

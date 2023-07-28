@@ -9,10 +9,35 @@ const BASE_SATISFIES_OPTIONS: semver.RangeOptions = {
   includePrerelease: true,
 };
 
+function loadDependencyPackageJson(
+  packageName: string,
+): { version: string } | null {
+  try {
+    return require(`${packageName}/package.json`) as { version: string };
+  } catch (error) {
+    // Error caused because the package isn't present?
+    if (
+      error != null &&
+      typeof error === 'object' &&
+      'code' in error &&
+      error.code === 'MODULE_NOT_FOUND'
+    ) {
+      return null;
+    }
+
+    throw error;
+  }
+}
+
 function satisfiesDependencyConstraint(
   packageName: string,
   constraintIn: DependencyConstraint[string],
 ): boolean {
+  const packageJson = loadDependencyPackageJson(packageName);
+  if (packageJson == null) {
+    return false;
+  }
+
   const constraint: SemverVersionConstraint =
     typeof constraintIn === 'string'
       ? {
@@ -21,7 +46,7 @@ function satisfiesDependencyConstraint(
       : constraintIn;
 
   return semver.satisfies(
-    (require(`${packageName}/package.json`) as { version: string }).version,
+    packageJson.version,
     constraint.range,
     typeof constraint.options === 'object'
       ? { ...BASE_SATISFIES_OPTIONS, ...constraint.options }

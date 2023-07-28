@@ -520,6 +520,58 @@ describe('RuleTester', () => {
       `);
     });
 
+    it('correctly handles any', () => {
+      const ruleTester = new RuleTester({
+        parser: '@typescript-eslint/parser',
+      });
+
+      ruleTester.run('my-rule', NOOP_RULE, {
+        valid: [
+          {
+            code: 'passing - exists',
+            dependencyConstraints: {
+              'totally-real-dependency': '*',
+            },
+          },
+        ],
+        invalid: [
+          {
+            code: 'failing - missing',
+            errors: [{ messageId: 'error' }],
+            dependencyConstraints: {
+              'totally-missing-dependency': '*',
+            },
+          },
+        ],
+      });
+
+      expect(getTestConfigFromCall()).toMatchInlineSnapshot(`
+        [
+          {
+            "code": "passing - exists",
+            "dependencyConstraints": {
+              "totally-real-dependency": "*",
+            },
+            "filename": "file.ts",
+            "skip": false,
+          },
+          {
+            "code": "failing - missing",
+            "dependencyConstraints": {
+              "totally-missing-dependency": "*",
+            },
+            "errors": [
+              {
+                "messageId": "error",
+              },
+            ],
+            "filename": "file.ts",
+            "skip": true,
+          },
+        ]
+      `);
+    });
+
     it('correctly handles object-based semver', () => {
       const ruleTester = new RuleTester({
         parser: '@typescript-eslint/parser',
